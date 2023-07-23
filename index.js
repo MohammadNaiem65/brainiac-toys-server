@@ -8,9 +8,15 @@ const port = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(function (req, res, next) {
+	res.setHeader(
+		'Content-Security-Policy',
+		"default-src 'self'; img-src 'self' data:; script-src 'self'"
+	);
+	return next();
+});
 
 // * Handling server
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@brainiactoys.eaha3r6.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -31,6 +37,10 @@ async function run() {
 		const toyCollection = client.db('brainiac').collection('toys');
 
 		// * Handling routes
+		app.get('/', (req, res) => {
+			res.send('Welcome to Brainiac Toys REST Api');
+		});
+
 		app.get('/toys', async (req, res) => {
 			const toys = await toyCollection.find().toArray();
 			res.send(toys);

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -17,7 +18,8 @@ app.use(function (req, res, next) {
 });
 
 // * Handling server
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@brainiactoys.evapyir.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -37,6 +39,7 @@ async function run() {
 		const toyCollection = client.db('brainiac').collection('toys');
 
 		// * Handling routes
+		// toys routes
 		app.get('/', (req, res) => {
 			res.send('Welcome to Brainiac Toys REST Api');
 		});
@@ -53,6 +56,15 @@ async function run() {
 				{ projection: { _id: 0 } }
 			);
 			res.send(toy);
+		});
+		
+		app.get('/top-toys', async (req, res) => {
+			const result = await toyCollection
+				.find()
+				.sort({ rating: -1 })
+				.limit(8)
+				.toArray();
+			res.send(result);
 		});
 
 		// Send a ping to confirm a successful connection
